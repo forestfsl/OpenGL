@@ -63,11 +63,12 @@ void SetupRC()
     
     //6.随机位置放置小球球
     for (int i = 0; i < NUM_SPHERES; i++) {
-        //y轴不变，X，Z产生随机值
-        GLfloat x = ((GLfloat)((rand() % 400) - 200) * 0.1f);
+        
+        //y轴不变，X,Z产生随机值
+        GLfloat x = ((GLfloat)((rand() % 400) - 200 ) * 0.1f);
         GLfloat z = ((GLfloat)((rand() % 400) - 200 ) * 0.1f);
         
-        //在y方向，将球设置为0,0的位置,这使得它们看起来是漂浮在眼睛的高度
+        //在y方向，将球体设置为0.0的位置，这使得它们看起来是飘浮在眼睛的高度
         //对spheres数组中的每一个顶点，设置顶点数据
         spheres[i].SetOrigin(x, 0.0f, z);
     }
@@ -79,6 +80,7 @@ void RenderScene(void)
     //1.颜色值(地板，大球，小球)
     static GLfloat vFloorColor[] = {0.0f,1.0f,0.0f,1.0f};
     static GLfloat vTorusColor[] = {1.0f,0.0f,0.0f,1.0f};
+    static GLfloat vSphereColor[] = {0.0f,0.0f,1.0f,1.0f};
     
     //2.基于时间动画
     static CStopWatch rotTimer;
@@ -87,29 +89,37 @@ void RenderScene(void)
     //3.清除颜色缓冲区和深度缓冲区
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    //3.绘制地面
+    //4.绘制地面
     shaderManager.UseStockShader(GLT_SHADER_FLAT,transformPipeline.GetModelViewProjectionMatrix(),vFloorColor);
     
     floorBatch.Draw();
     
-    //4.获取光源位置
+    //5.获取光源位置
     M3DVector4f vLightPos = {0.0f,10.0f,5.0f,1.0f};
     
-    //5.使得大球位置平移3.0 想屏幕里面
+    //6.使得大球位置平移3.0 想屏幕里面
     modelViewMatrix.Translate(0.0f, 0.0f, -3.0f);
-    //6.压栈
+    //7.压栈
     modelViewMatrix.PushMatrix();
-    //7.大球自转
+    //8.大球自转
     modelViewMatrix.Rotate(yRot, 0.0f, 1.0f, 0.0f);
     
-    //8.指定合适的着色器
+    //9.指定合适的着色器
     shaderManager.UseStockShader(GLT_SHADER_POINT_LIGHT_DIFF,transformPipeline.GetModelViewMatrix(),transformPipeline.GetProjectionMatrix(),vLightPos,vTorusColor);
     torusBatch.Draw();
     
-    //9.绘制完毕则pop
+    //10.绘制完毕则pop
     modelViewMatrix.PopMatrix();
     
-    //10.执行缓存区交换
+    //11.画小球
+    for (int i = 0; i < NUM_SPHERES; i++) {
+        modelViewMatrix.PushMatrix();
+        modelViewMatrix.MultMatrix(spheres[i]);
+        shaderManager.UseStockShader(GLT_SHADER_POINT_LIGHT_DIFF,transformPipeline.GetModelViewMatrix(),transformPipeline.GetProjectionMatrix(),vLightPos,vSphereColor);
+        sphereBatch.Draw();
+        modelViewMatrix.PopMatrix();
+    }
+    //12.执行缓存区交换
     glutSwapBuffers();
 }
 
